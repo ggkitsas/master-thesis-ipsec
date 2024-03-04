@@ -1,0 +1,37 @@
+%!TEX root = ../main.tex
+
+\section{Design Goals}
+The present thesis produced an implementation of IPsec utilizing a hardware and software co-design approach. The target of the implementation is the FPGA board Virtex-5 ML505-ML509 Revision A \cite{ml505_user_guide}, housing the Virtex-5 XC5VFX70T FPGA. For software execution, the Microblaze soft-core processor \cite{mb_user_guide} is employed. Additionally, the system requires an Ethernet interface which is provided on the board along with the necessary drivers from Xilinx. Finally, an external DDR2 SDRAM memory is used for storing and executing the software. It should be noted that the system can be implemented using any board and processor, as long as an Ethernet interface, sufficient FPGA area, and enough memory for software execution are provided.
+
+The library lwIP, an open-source implementation of the TCP/IP stack for embedded systems, is used. A port of lwIP to the specific FPGA board is provided by Xilinx. Additional modifications were made in the course of this thesis to incorporate IPsec.
+
+For programming and debugging the system, a PC with an installation of Xilinx's ISE suite is used. Programming of the board is performed through a JTAG-to-USB cable, and debugging is performed through the board's serial port using a UART-to-USB cable.
+
+Furthermore, a computer with the Linux operating system is used, where the IPsec Linux implementation "ipsec-tools" is installed. This computer is connected via Ethernet to the FPGA board, and both systems are configured to communicate using IPsec. This setup allows monitoring of incoming and outgoing packets. It also allows the verification of the system against a mainstream IPsec implementation.
+
+
+\section{Design Decisions}
+
+The system is implemented as an embedded system on an FPGA. This implementation environment has various constraints as well as advantages. Some of the constraints considerations include the available hardware area, the available peripherals, and the speed of the Microblaze soft-core processor. The main advantage includes the rapid development, implementation, and testing of hardware components.
+
+Taking the above into consideration, various design choices are made aiming for the best possible utilization of the implementation environment's properties. These choices are explained in the following subsections.
+
+
+\subsection{Native Implementation}
+
+As mentioned in Chapter ~\ref{ch:3.1}, there are three ways the integration of IPsec can be performed. The chosen approach for this implementation is the "Native" approach. This is because the software package lwIP (lightweight IP), is readily available for our target hardware. Additionally, this package is open-source, giving us the option to directly modify its source code.
+
+While a ready implementation of the TCP/IP stack, removes the additional effort of implementing the necessary protocols for the system to function as a network system, it requires an in-depth study of the lwIP code and specification in order to leverage its capabilities and establish proper interfacing between the two systems (lwIP and IPsec).
+
+
+\subsection{Hardware and Software}\label{ch:4.2.2}
+
+The available development environment enables the implementation of both hardware and software components. Certain modules can be selected for hardware implementation, while others can be executed in software. These subsystems can collaborate (hardware-software co-design), leveraging the benefits of each and mitigating their drawbacks.
+
+In this thesis, the essential components of IPsec are implemented. Both AH and ESP protocols are integrated, covering both transport and tunnel modes. Additionally, both SADB and SPD are incorporated. The system can function as both a host and an SG. AH and ESP header processing, as well as the management of SPD and SADB databases, are implemented in software as part of the modified lwIP. The decision to develop these components in software is driven by the advantages of expedited development and debugging, facilitating better integration of IPsec with lwIP.
+
+The cryptographic algorithms CBC-AES-128 and HMAC-SHA-1-96 are implemented in hardware. This decision is motivated by their role as latency and throughput bottlenecks, which are significantly alleviated by the faster speeds and parallel processing offered by hardware implementations.
+
+Manual SA management is the only supported method. This choice is made due to the complexity and size of the IKE protocol, which is deemed beyond the scope of this thesis.
+
+Additional features of the system include support for anti-replay protection and a generalized interface to cryptographic algorithms, simplifying the integration of different algorithms.

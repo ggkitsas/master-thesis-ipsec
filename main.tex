@@ -1,0 +1,216 @@
+\documentclass[a4paper,12pt,twoside]{book}
+\usepackage{upatras-thesis}
+
+% PDF settings
+%
+\hypersetup
+{
+    pdfauthor={\me},
+    pdftitle={\shortdoctitle},
+    pdfsubject={\doctitle},
+    pdfkeywords={\keywords},
+    pdfproducer={pdfLaTeX},
+    pdfcreator={\creator}
+}
+
+%
+% These commands need to be defined in order to produce a correct and personalized document
+%
+
+%%%%%%%%%%%%%% English
+\newcommand{\shortdoctitle}{Diploma Thesis}
+\newcommand{\doctitle}{Software/Hardware Co-design and FPGA Implementation of the Security Protocol IPSec for the Internet Protocol version 6 (IPv6)}
+\newcommand{\docsubtitle}{Υπότιτλος εγγράφου}
+\newcommand{\division}{Electronics \& Computers}
+\newcommand{\lab}{Very Large Scale of Integration LAB (VLSI Design)}
+
+\newcommand{\me}{Georgios Gkitsas} %(σε γενική πτώση) ΠΡΟΣΟΧΗ: στοιχεία σε γενική πτώση. Παράδειγμα: Άγγελου Σικελιανού του Ιωάννη
+%
+\newcommand{\nomme}{Georgios Gkitsas} %(σε ονομαστική πτώση) ΠΡΟΣΟΧΗ: στοιχεία σε ονομαστική πτώση. Παράδειγμα: Άγγελος Σικελιανός του Ιωάννη
+%
+\newcommand{\studnum}{6732}
+\newcommand{\keywords}{Λέξεις Κλειδιά}
+\newcommand{\monthyear}{ 31 March 2014}
+
+\newcommand{\supname}{Georgios Theodoridis}
+\newcommand{\suptitle}{Assistant Professor}
+\newcommand{\supuni}{}
+
+\newcommand{\cosupname}{Συνεπιβλέποντας Καθηγητής}
+\newcommand{\cosuptitle}{Τίτλος Συνεπιβλέποντα Καθηγητή}
+\newcommand{\cosupuni}{}
+
+\newcommand{\headofdivision}{Housos Efthymios}
+\newcommand{\headofdivisiontitle}{Professor}
+
+%%%%%%%%%%%%%% Greek
+% \newcommand{\shortdoctitle}{Διπλωματική Εργασία}
+% \newcommand{\doctitle}{Συ-σχεδίαση Υλικού/Λογισμικού και Υλοποίηση σε πλατφόρμα FPGA του πρωτοκόλλου ασφαλείας IPsec για το Internet Protocol version 6 (IPv6)}
+% \newcommand{\docsubtitle}{Υπότιτλος εγγράφου}
+% \newcommand{\division}{Ηλεκτρονικής και Υπολογιστών}
+% \newcommand{\lab}{Εργαστήριο Σχεδιασμου Ολοκληρωμένων Κυκλωμάτων
+% Μεγάλης Κλίμακας\\(VLSI Design)}
+
+% \newcommand{\me}{Γεώργιου Γκίτσα του Χρήστου} %(σε γενική πτώση) ΠΡΟΣΟΧΗ: στοιχεία σε γενική πτώση. Παράδειγμα: Άγγελου Σικελιανού του Ιωάννη
+% %
+% \newcommand{\nomme}{Γεώργιος Γκίτσας του Χρήστου} %(σε ονομαστική πτώση) ΠΡΟΣΟΧΗ: στοιχεία σε ονομαστική πτώση. Παράδειγμα: Άγγελος Σικελιανός του Ιωάννη
+% %
+% \newcommand{\studnum}{6732}
+% \newcommand{\keywords}{Λέξεις Κλειδιά}
+% \newcommand{\monthyear}{ 31 Μαρτίου 2014}
+
+% \newcommand{\supname}{Γεώργιος Θεοδωρίδης}
+% \newcommand{\suptitle}{Επίκουρος Καθηγητής}
+% \newcommand{\supuni}{}
+
+% \newcommand{\cosupname}{Συνεπιβλέποντας Καθηγητής}
+% \newcommand{\cosuptitle}{Τίτλος Συνεπιβλέποντα Καθηγητή}
+% \newcommand{\cosupuni}{}
+
+% \newcommand{\headofdivision}{Χούσος Ευθύμιος}
+% \newcommand{\headofdivisiontitle}{Καθηγητής}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\ts}{\textsuperscript}
+\newcommand{\ssc}{\textsubscript}
+\newdimen{\algindent}
+\setlength\algindent{1.5em}          % algorithmic indent=1.5em
+\algnewcommand\LeftComment[2]{%
+\hspace{#1\algindent}$\triangleright$ \eqparbox{COMMENT}{#2} \hfill %
+}
+
+\definecolor{bluekeywords}{rgb}{0.13,0.13,1}
+\definecolor{greencomments}{rgb}{0,0.5,0}
+\definecolor{redstrings}{rgb}{0.9,0,0}
+
+\lstdefinestyle{mycodestyle}{language=C,
+    basicstyle=\small\ttfamily,
+    showstringspaces=false,
+    breaklines=true,
+    frameround=ffff,
+    frame=single,
+    rulecolor=\color{black},
+    autogobble=true
+    commentstyle=\color{greencomments},
+    keywordstyle=\color{bluekeywords},
+    stringstyle=\color{redstrings},
+    tabsize=2,
+    captionpos=b, 
+    commentstyle=\color{mygreen},
+    morekeywords={err_t, require, end, in},            % if you want to add more keywords to the set
+}
+
+
+\author{\me}
+
+% GLOSSARY
+\makeglossaries
+\input{library/glossary}
+
+% BEGIN DOCUMENT
+\begin{document}
+
+% SET PAGE NUMBERING TO ROMAN
+\pagenumbering{roman}
+\setcounter{page}{3}
+
+%*************************%
+%         TITLES          %
+%*************************%
+
+\include{intro/titlepage}
+\clearemptydoublepage
+
+% \include{intro/certification}
+% \clearemptydoublepage
+
+% \include{intro/about}
+% \clearemptydoublepage
+
+\include{intro/summary}
+\clearemptydoublepage
+
+\include{intro/acknowledgements}
+\clearemptydoublepage
+
+\pagestyle{empty}
+
+{\hypersetup{linkcolor=black}
+\tableofcontents
+}
+\clearemptydoublepage
+
+%*************************%
+%    1. Lists of figures  %
+%    2. List of Tables    %
+%    3. Glossary          %
+%*************************%
+\listoffigures
+\listoftables
+\printglossaries
+\clearemptydoublepage
+
+\mainmatter % book mode only
+\clearemptydoublepage
+
+
+\pagestyle{fancy}
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+%*************************%
+%       Main Chapters     %
+%*************************%
+
+% Introduction
+\input{chapters/introduction}
+\clearemptydoublepage
+
+% Chapter 2
+\chapter{Cryptography and Security Protocols}\label{ch:chap2}
+\input{chapters/chapter_2}
+\clearemptydoublepage
+
+% Chapter 3
+\chapter{The IPsec Protocol Suite}\label{ch:chap3}
+\input{chapters/chapter_3}
+\clearemptydoublepage
+
+% Chapter 4
+\chapter{System Overview}\label{ch:chap4}
+\input{chapters/chapter_4}
+\clearemptydoublepage
+
+% Chapter 5
+\chapter{Hardware Components}\label{ch:chap5}
+\input{chapters/chapter_5}
+\clearemptydoublepage
+
+% Chapter 6
+\chapter{Software Components}\label{ch:chap6}
+\input{chapters/chapter_6}
+\clearemptydoublepage
+
+% Chapter 7
+\chapter{FPGA Implementation and On-Chip Verification}\label{ch:chap7}
+\input{chapters/chapter_7}
+\clearemptydoublepage
+
+% Chapter 8
+\chapter{Roadblocks and Solutions}\label{ch:chap8}
+\input{chapters/chapter_8}
+\clearemptydoublepage
+
+%**************************%
+%    END OF MAIN THESIS    %
+%**************************%
+
+% bibliography
+\nocite{*}
+\bibliographystyle{unsrt}
+\bibliography{library/bibliography.bib}
+\clearemptydoublepage
+
+% Last Page
+\input{intro/lastpage}
+\end{document}

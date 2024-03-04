@@ -1,0 +1,85 @@
+%!TEX root = ../main.tex
+
+During the course of this thesis, various difficulties were encountered in all phases of system development. Here, we briefly mention the most significant ones.
+
+\subsubsection*{Memory Management of lwIP}
+lwIP has its own memory management library. The function used to allocate a memory block is mem\_malloc. This function is utilized by lwIP in any memory allocation operation, such as pbuf\_alloc, which allocates memory for a new pbuf.
+
+During the initial phase of IPsec software implementation, memory management was handled by the native C library. However, memory allocation by the IPsec memory management didn't interoperate with lwIP memory management, resulting in allocation conflicts and memory overlaps which created unintended data overwrites. This occurred because there was no coordination between the two memory managers regarding which memory areas are allocated at a given point in time. Consequently, for example, a pbuf allocated in memory by lwIP would be lost or corrupted when memory area overlapping with pbuf was allocated by IPsec. This confusion in the implementation process was resolved by appropriately modifying the memory management of IPsec to use mem\_malloc, which updates the lwIP memory manager for the memory allocations made by IPsec.
+
+\subsubsection*{Hardware Design and Implementation}
+On many occasions during the hardware implementation phase, a design seemed to work perfectly in simulations but behaved unexpectedly when deployed on the FPGA chip.
+
+During the implementation of the two peripheral modules, CBC-AES-128 and HMAC-SHA1-96, the aforementioned difficulty was encountered multiple times, leading to several reconsiderations of the design. The first attempted AES design was logically correct and passed all simulations successfully. When deployed on the FPGA though, it was outputting results that were unrelated and seemed random. The culprit was that a control signal that was driving several MUXes although logically has a constant value across all units, in reality, it suffered from delays and glitches that made it inconsistent across the system.
+
+% fig 8.1 CANNOT FIND THIS
+% \begin{figure}[H]
+% \centering
+% \includegraphics[width= 0.8\textwidth]{figure_8.1}\\
+% \caption{  }
+% \label{fig:figure_8.}
+% \end{figure}
+
+The synthesizer tries to adhere to the timing constraints necessary for the circuit to function correctly. However, the presence of feedback paths and the absence of registers to partition them make its job more difficult, and some constraints may not be strictly adhered to. The problem was be solved by placing registers on the feedback paths. However, this approach would divide the path into two parts, doubling the processing time of each AES round, and would also impose changes in the FSM's operation. The final solution avoids these drawbacks by decoupling processing paths and creating a main path without feedback, at the cost of a small additional area utilization. The new design makes it clear to the synthesizer which delays it should take into account and where.
+
+Another point of difficulty was the operating frequency of peripherals. Since the entire system operates with a clock of 100MHz, peripherals should also be able to operate at a frequency of at least 100MHz. The initial implementations of peripherals did not reach the system frequency, and optimizations were made until this frequency was exceeded by an additional safety margin.
+
+Finally, there was a subtle issue in the processor's interface with the peripherals. The peripherals' command signals are set by the processor to '1' or '0'. When a pulse needs to be issued to a control signal, the appropriate bit pattern needs to be written to the memory location that maps the control register. The pattern for a positive pulse is to first set it to '1', and then rewrite it to set it to '0'. However, a writing operation can take several clock cycles, so there is a possibility that we may not set the control signal to '0' before the peripheral reaches a state where it checks its value, resulting in an unintended command. To ensure correct operation in such cases, circuits were designed and placed in the control signals of the peripherals, which generate a one-clock cycle pulse from a rising edge. That removes the need to erase the previous command right after issuing it but instead, the previous command is erased before the new command is issued.
+
+\subsubsection*{Drivers}
+During the implementation of the peripheral drivers, it was observed that although the correct commands were given to the peripherals, the peripherals were unresponsive. The culprit was the optimizations applied to the driver code by the compiler. The code for setting control signals takes the form presented in Listing \ref{lst:set_cmd}.
+
+\noindent
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[style=mycodestyle, label={lst:set_cmd}, caption={Example of setting peripheral control signals}]
+control_register = value1;
+control_register = value2;
+\end{lstlisting}
+\end{minipage}\\
+
+The compiler, seeing that the final value of the control\_register is value2 and that as long as it has the value value1 it is not used anywhere, decides to optimize it away, resulting in the code shown in Listing \ref{lst:optimized_set_cmd}. \\
+
+\noindent
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[style=mycodestyle, label={lst:optimized_set_cmd}, caption={Setting peripheral control signals after compiler optimization}]
+control_register = value2;
+\end{lstlisting}
+\end{minipage}\\
+
+One way to solve this issue would be to completely disable compiler optimizations. However, this will lead to the whole software being unoptimized, resulting in a significantly slower execution and higher memory consumption. Another way is to instruct the compiler to not optimize only a part of the program using the method presented in Listing \ref{lst:no_optim}.\\
+
+\noindent
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[style=mycodestyle, label={lst:no_optim}, caption={Instructing the compiler to not optimize a code segment}]
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+// Code section we don't want to optimize
+#pragma GCC pop_options
+\end{lstlisting}
+\end{minipage}\\
+
+
+Unfortunately, these commands to the compiler were not taken into account, which may be a design choice of the compiler developers. Ultimately, the code had to be written to trick the compiler into believing that the first value of the signal was used in the program by forcing a write to both values. For this reason, a function was created that simply sets the value of its argument to the control\_register variable, as shown in Figure \ref{lst:workaround}.\\
+
+\noindent
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[style=mycodestyle, label={lst:workaround}, caption={Workaround to stop the compiler from optimizing a code segment}] 
+void set_control_register(u32_t value)
+{
+	control_register = value;
+}
+\end{lstlisting}
+\end{minipage}\\
+
+\noindent
+and the original code gets transformed to the one shown in Listing \ref{lst:final_code}.\\
+
+\noindent
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[style=mycodestyle, label={lst:final_code}, caption={Successfully setting peripheral control signals}] 
+control_register = value1;
+set_control_register(value2);
+\end{lstlisting}
+\end{minipage}\\
+
+The last approach indeed solved the problem, as the compiler sees the control\_register variable being used in a function. It should be noted here that compilers are quite smart in optimizations, and perhaps, in a different case, a completely different approach would be needed to trick it. Furthermore, the processor in our system operates without a cache. If a cache exists, then the problem cannot be solved using this method either, as changes in the values of the control\_register variable would be performed in the cache, leading again to writing only the final value to the peripheral. In this case, other techniques would have to be used, such as placing the control registers outside the cacheable memory region or forcing cache refresh, etc.
